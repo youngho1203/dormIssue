@@ -1,0 +1,77 @@
+<!--
+/**
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+    .title {
+      font: normal 16px Roboto, sans-serif;
+      margin: 10px 0;
+    }
+    .sub-title {
+      font: normal 14px Roboto, sans-serif;      
+      margin: 10px 0 6px 0;
+    }
+    .gmail-table {
+      border: solid 2px #DDEEEE;
+      border-collapse: collapse;
+      border-spacing: 0;
+      font: normal 14px Roboto, sans-serif;
+    }
+    .gmail-table thead th {
+      background-color: #DDEFEF;
+      border: solid 1px black; // #DDEEEE;
+      color: #336B6B;
+      padding: 4px;
+      text-align: center;
+      text-shadow: 1px 1px 1px #fff;
+    }
+    .gmail-table tbody td {
+      border: solid 1px #DDEEEE;
+      color: #333;
+      padding: 4px;
+      text-align: center;
+      text-shadow: 1px 1px 1px #fff;
+    }
+    .info {
+      font: normal 14px Roboto, sans-serif;
+      margin: 20px 0 10px 0;
+    }
+    .col1 { /*등록시간*/
+      width: 200px;
+    }
+    .col3 { /*방번호*/
+      width: 66px;
+    }
+    .col4 { /*Malfunction Type */
+      width: 100px;
+    }
+    .col5 { /*Description */
+      width: 300px;
+    }
+    col10 { /* 유형 */
+      width: 66px;
+    } 
+    .gmail-table tbody td.col4 { /*이름*/
+      text-align: left;
+      width: 300px;
+    }    
+    </style>  
+  </head>
+  <body>
+    <div class='title'> [광토 기숙사(교환학생, 외국인 학생)] <?= date.toISOString().substring(0, 10) ?> 일일 민원 접수 보고</div>
+    <div class='summary'>현재 총 Open 민원 : 총 [<?= allOpenNumber ?>] 건, 오늘 신규 접수 : [<?= newOpenIssue.length ?>] 건</div>
