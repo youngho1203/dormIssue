@@ -30,7 +30,8 @@ function sendNotification() {
  */
 function hasNewOne(now) {
   // 상태가 Open 이고, 등록 날짜가 오늘인 경우
-  return (listsSheet.getRange("A2:J").getValues().filter(a => (a[9] == 'Open')).filter(a => (a[0].toISOString().substring(0,10) == now.toISOString().substring(0, 10))));  
+  let date = _getISOTimeZoneCorrectedDateString(now);
+  return (listsSheet.getRange("A2:J").getValues().filter(a => (a[9] == 'Open')).filter(a => (_getISOTimeZoneCorrectedDateString(a[0]) == date)));  
 }
 
 function sendEmail(now, targetEmailList, dataArray, allOpenNumber){
@@ -77,7 +78,7 @@ function sendEmail(now, targetEmailList, dataArray, allOpenNumber){
       htmlMessage.append("<th class='");
       htmlMessage.append("col");
       htmlMessage.append((index + 1));
-      htmlMessage.append("'>")
+      htmlMessage.append("' style='background-color: #DDEFEF; border: solid 1px #336B6B; color: #336B6B; padding: 4px; text-align: center; text-shadow: 1px 1px 1px #fff;'>");
       htmlMessage.append(title);
       htmlMessage.append("</th>");
     });
@@ -91,7 +92,7 @@ function sendEmail(now, targetEmailList, dataArray, allOpenNumber){
           htmlMessage.append("<td class='");
           htmlMessage.append("col");
           htmlMessage.append((index + 1));
-          htmlMessage.append("'>");
+          htmlMessage.append("' style='border: solid 1px #336B6B; color: #333; padding: 4px; text-align: center; text-shadow: 1px 1px 1px #fff;'>");
           htmlMessage.append(col);
           htmlMessage.append("</td>");
         }
