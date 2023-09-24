@@ -15,17 +15,18 @@ const ws = SpreadsheetApp.getActiveSpreadsheet();
 const listsSheet = ws.getSheetByName("Response List");
 const configSheet = ws.getSheetByName("Config");
 const History_Tab = "History";
+const title_array = ['등록 시간','호실','학번','고장 유형','상세 설명','사진 링크','이메일'];
 
 function setInitialValue(e) {
+  if(!e){
+    return;
+  }
   //
   // 새로운 행(새로운 민원)이 입력되었을 때 Call
-  // 이 Method 는 이 화면 우측 메뉴의 트리거 메뉴에서 '트리거 추가'>'새로운 응답이 추가 될때' 를 등록해야 작동함. 
-  // Set Initial Value 
   //
-    const range_modified = e.range;
+    let range_modified = e.range;
     if(range_modified.getSheet().getSheetName() !== 'Response List') return;
     if(range_modified.getRow() < 2) return;
-    // console.log("Call setInitialValue");
     
     // for example : 1423A ( 호실 (2번째 열) 의 값으로 구분 (8번쨰 열)의 값을 설정함.
     var value = listsSheet.getRange(range_modified.getRow(), 2).getValue().toString().substring(0,4);
@@ -51,21 +52,26 @@ function setInitialValue(e) {
     });
 
     // always, 10번째 column (상태) 의 값은 초기값은 항상 Open
-    listsSheet.getRange(range_modified.getRow(), 10).setValue('Open');
-  }    
+    let range = listsSheet.getRange(range_modified.getRow(), 10);
+    range.setValue('Open');
+    // notify
+    try {
+      notify(range);
+    }
+    catch(e) {
+      console.log(e);
+    }
+  }   
 
 function onEdit(e) {
+  if(!e){
+    return;
+  }
   //
-  // 상태 Cell 값이 변경되었을 때 Call
-  // 이 Method 는 SpreadSheet 에 Default 로 등록이 되어 있슴. ( 별도의 트리거 등록 없이 cell 값이 변하면 항상 Call )
-  //
-  const range_modified = e.range;
-  // console.log("Call onEdit");
-  // if(range_modified.getSheet().getSheetName() !== 'Response List') return;
+  let range_modified = e.range;
   if(range_modified.getRow() < 2) return;
+  //
   var column = range_modified.getColumn();
-  var status = range_modified.getValue();
-
   if(column == 10) {
     //
     var color = "black";
@@ -86,19 +92,6 @@ function onEdit(e) {
     var color = getColor(range_modified.getValue());
     range_modified.setFontColor(color);    
   }
-  //
-  if(status == 'Fixed' || status == 'Closed' || status == 'Deny') {
-    // Response List tab 에서만 작동
-    if(range_modified.getSheet().getSheetName() !== 'Response List') return;
-    var row = range_modified.getRow();
-    doMoveForClose(row);
-  }
-  else if(status == 'Reopen') {
-    // History Tab 에서만 작동
-    if(range_modified.getSheet().getSheetName() !== 'History') return;
-    var row = range_modified.getRow();
-    doMoveForReopen(row);
-  }  
 }
 
 /**
@@ -151,4 +144,39 @@ function getColor(value) {
       default : color = "black"; 
     }
     return color;
+}
+
+function onChange(e){
+  /**
+   * status change 를 등록된 사용자에게 notification 한다.
+   */  
+  if(e.changeType === 'EDIT') {
+    let sheet = ws.getActiveSheet();
+    let activeRange = sheet.getActiveRange();
+    
+    if(activeRanger.getColumn() != 10) {
+      // Status 만 처리
+      return;
+    }
+
+    try {
+      let status = activeRange.getValue();
+      let row = activeRange.getRow();      
+      notify(activeRange);
+      //
+      if(status == 'Fixed' || status == 'Closed' || status == 'Deny') {
+        // Response List tab 에서만 작동
+        if(activeRange.getSheet().getSheetName() !== 'Response List') return;
+        doMoveForClose(row);
+      }
+      else if(status == 'Reopen') {
+        // History Tab 에서만 작동
+        if(activeRange.getSheet().getSheetName() !== 'History') return;
+        doMoveForReopen(row);
+      }
+    }
+    catch(ex) {
+      console.log(ex);
+    }    
+  }
 }

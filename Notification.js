@@ -71,7 +71,7 @@ function sendEmail(now, targetEmailList, dataArray, allOpenNumber){
       'Detail Description',
       '유형'
     ]
-    htmlMessage.append("<table class='gmail-table'>");
+    htmlMessage.append("<table class='gmail-table' style='border: solid 1px #336B6B; border-collapse: collapse; border-spacing: 0; font: normal 14px Roboto, sans-serif;'>");
     htmlMessage.append("<thead>");
     htmlMessage.append("<tr>");
     titleArray.forEach((title, index) => {
@@ -112,8 +112,35 @@ function sendEmail(now, targetEmailList, dataArray, allOpenNumber){
     data[1] ='SENT';    
   }
   catch(ex) {
-    data[1] =ex.stack;  
+    data[1] = ex.stack;  
   }
   // 
   historySheet.appendRow(data);  
 }
+
+//
+// Status Option Change Notification
+//
+function notify(range) {
+    let status = range.getValue();
+    let values = range.offset(0,-9,1,12).getValues()[0];
+    configSheet.getRange("C2:C8").getValues().forEach((value,index) => { if(value[0] == status) {
+      let targetEmailList = configSheet.getRange(index + 2, 4).getValue();
+      if(targetEmailList !== '') {
+        let dateTime = _getISOTimeZoneCorrectedDateString(new Date(values[0]),true);
+        let subject = dateTime + ' 에 ' + values[1] + " 학생이 등록한 민원의 상태가 '" + status + "' 이(가) 되었습니다.";
+        let message_array = title_array.map(function(el, i) {
+          return el + ' : ' + values[i];
+        });
+        let message = message_array.toString().replaceAll(',','\n') + '\n\n' +
+          '------------------------------------' + '\n' +
+          'Sheet Link : https://docs.google.com/spreadsheets/d/1x8ICjWgGy8G1WrEhYMLihDWjIgyLC8SIAyeQX4zTl0o#gid=1297275685' + '\n' +
+          '------------------------------------';
+        targetEmailList.split(',').forEach(
+          address =>  {
+            GmailApp.sendEmail(address, subject, message);
+          }
+        );
+      }
+    }});
+  }
