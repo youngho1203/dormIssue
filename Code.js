@@ -154,7 +154,7 @@ function onChange(e){
     let sheet = ws.getActiveSheet();
     let activeRange = sheet.getActiveRange();
     
-    if(activeRanger.getColumn() != 10) {
+    if(activeRange.getColumn() != 10) {
       // Status 만 처리
       return;
     }
