@@ -17,6 +17,17 @@ const configSheet = ws.getSheetByName("Config");
 const History_Tab = "History";
 const title_array = ['등록 시간','호실','학번','고장 유형','상세 설명','사진 링크','이메일'];
 
+/**
+ * For RoomCardId, StudentId double check
+ * 현황 Sheet URL
+ * Security 문제 때문에  
+ */ 
+const STATUS_SHEET_REQUEST_URL= 'https://docs.google.com/spreadsheets/d/1SP7fhSOQ0P8M6bs564_pOWgEGVkpGfRuh2veioCNyuU/gviz/tq?gid=774021608';
+//
+const REQUEST_RANGE = 'B3:E178';
+//
+const REQUEST_QUERY_COMMAND = 'Select B,C,D,E WHERE E > 0 AND D=FALSE';
+
 function setInitialValue(e) {
   if(!e){
     return;
@@ -27,7 +38,7 @@ function setInitialValue(e) {
     let range_modified = e.range;
     if(range_modified.getSheet().getSheetName() !== 'Response List') return;
     if(range_modified.getRow() < 2) return;
-    
+    // console.log(range_modified);
     // for example : 1423A ( 호실 (2번째 열) 의 값으로 구분 (8번쨰 열)의 값을 설정함.
     var value = listsSheet.getRange(range_modified.getRow(), 2).getValue().toString().substring(0,4);
     var divisionRange = configSheet.getRange("E2:E85");
@@ -54,6 +65,13 @@ function setInitialValue(e) {
     // always, 10번째 column (상태) 의 값은 초기값은 항상 Open
     let range = listsSheet.getRange(range_modified.getRow(), 10);
     range.setValue('Open');
+
+    // roomNumber, studentId 확인
+    let values = range_modified.getValues()[0];
+    if(!userCheck(values[2], values[1])) {
+      range_modified.offset(0, 0, 1, 6).setBackground("Orange");
+    } 
+
     // notify
     try {
       notify(range);
@@ -62,6 +80,54 @@ function setInitialValue(e) {
       console.log(e);
     }
   }   
+
+/**
+ * current list sheet 에서 studentId, roomNumber 가 일치하는지 재 확인한다.
+ */
+function userCheck(studentId, roomCardId) {
+  let roomNumber = roomCardId.substring(0,4);
+  let bedCode = roomCardId.substring(4,5);
+  let check = false;
+  let result = query();
+  // [ 1301, 'A', false, 23040127 ]
+  result.forEach((value, index) => {
+    if(!check) {
+      check = (roomNumber == value[0] && bedCode == value[1] && studentId == value[3]);
+    }
+  });
+  
+  return check;
+}
+
+function query() {
+  var request = STATUS_SHEET_REQUEST_URL + '&range=' + REQUEST_RANGE + '&tq=' + encodeURIComponent(REQUEST_QUERY_COMMAND);
+  var request_result = UrlFetchApp.fetch(request).getContentText();    
+  // get json object
+  var _from = request_result.indexOf("{");
+  var _to   = request_result.lastIndexOf("}") + 1; 
+  var jsonText = request_result.slice(_from, _to);
+  var parsedObject = JSON.parse(jsonText);
+  if(parsedObject.status !== 'ok') {
+    console.log("ERROR ", REQUEST_QUERY_COMMAND, request);
+    throw new Error(REQUEST_QUERY_COMMAND + " : " + JSON.stringify(parsedObject));
+  }  
+  let columnCount = parsedObject.table.cols.length;
+  var result = [];
+  parsedObject.table.rows.forEach(row => {
+    var rowValue = row.c;
+    var _row = [];
+    for(var k=0; k<columnCount; k++) {
+      if(!rowValue[k]) {
+        _row.push('');
+      }
+      else {
+        _row.push(rowValue[k].v);
+      }
+    }
+    result.push(_row);
+  });
+  return result;
+}
 
 function onEdit(e) {
   if(!e){
